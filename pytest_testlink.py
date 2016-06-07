@@ -70,14 +70,14 @@ def load_testlink_file(file_path):
     TLINK.ini.read(file_path)
 
     # load testlink-conf section
-    if 'testlink-conf' in TLINK.ini.sections():
-        TLINK.conf = TLINK.ini['testlink-conf']
+    if TLINK.ini.has_section('testlink-conf'):
+        TLINK.conf = dict(TLINK.ini.items('testlink-conf'))
     else:
         TLINK.disable_or_exit('section "testlink-conf" not found in ini file: %s' % file_path)
 
     # load testlink-maps section
-    if 'testlink-maps' in TLINK.ini.sections():
-        TLINK.maps = TLINK.ini['testlink-maps']
+    if TLINK.ini.has_section('testlink-maps'):
+        TLINK.maps = dict(TLINK.ini.items('testlink-maps'))
     else:
         print('section "testlink-maps" not found in ini file: %s' % file_path)
 
@@ -158,6 +158,12 @@ def init_testlink():
     TLINK.test_build_id = TLINK.test_build[0]['id']
     print(TLINK.test_build_id)
 
+    # get platform name
+    TLINK.platform_name = TLINK.conf['platform_name']
+
+    # get user name
+    TLINK.user_name = TLINK.conf['user_name']
+
 
 ########################################################################################################################
 # py test hooks
@@ -233,10 +239,31 @@ def pytest_runtest_logreport(report):
             if report.nodeid not in TLINK.nodes:
                 print('testlink: WARN: ext-id not found: %s' % report.nodeid)
                 return
-            TLINK.rpc.reportTCResult(testplanid=TLINK.test_plan_id,
-                                     buildid=TLINK.test_build_id,
-                                     status=status,
-                                     testcaseexternalid=TLINK.nodes[report.nodeid])
+            # print('Reporting - testplanid: {}, buildid: {}, status: {}, case: {}, platformname: {}'.format(TLINK.test_plan_id, TLINK.test_build_id, status, TLINK.nodes[report.nodeid], TLINK.platform_name))
+            tc_data = {
+                "testplanid": TLINK.test_plan_id,
+                "buildid": TLINK.test_build_id,
+                # "buildname": "",
+                "status": status,
+                "testcaseexternalid": TLINK.nodes[report.nodeid],
+                # "testcaseid": "",
+                # "platformname": "",
+                # "platformid": "",
+                # "notes": "",
+                # "guess": "",
+                # "bugid": "",
+                # "customfields": dictionary with customfields names + values VERY IMPORTANT: value must be formatted in the way it's written to db,
+                # "overwrite": if present and true, then last execution for (testcase,testplan,build,platform) will be overwritten,
+                # "user": if present and user is a valid login (no other check will be done) it will be used when writting execution,
+                # "execduration": Exec (min) as float (2.5 = 2min 30sec),
+                # "timestamp": 'YYYY-MM-DD hh:mm[:ss]'
+            }
+            if TLINK.platform_name is not None:
+                tc_data["platformname"] = TLINK.platform_name
+            if TLINK.user_name is not None:
+                tc_data["user"] = TLINK.user_name
+            TLINK.rpc.reportTCResult(**tc_data)
+            # print('testlink: node {} posted'.format(report.nodeid))
         except TestLinkError as exc:
             print('testlink: WARN: Unable to update result: %s' % report.nodeid)
             print('testlink: Check if the test case is not linked to test plan!')

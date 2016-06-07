@@ -4,16 +4,16 @@ import codecs
 
 long_description = 'pytest-testlink is a plugin for py.test that reports to testlink'
 
-VERSION = '0.3'
-PYPI_VERSION = '0.3'
+VERSION = '0.4.0'
+PYPI_VERSION = '0.4.0'
 
 setup(
     name='pytest-testlink',
     description=long_description,
     long_description=long_description,
     version=VERSION,
-    url='https://github.com/manojklm/pytest-testlink/',
-    download_url='https://github.com/manojklm/pytest-testlink/tarball/%s' % PYPI_VERSION,
+    url='https://github.com/margru/pytest-testlink/',
+    download_url='https://github.com/margru/pytest-testlink/tarball/%s' % PYPI_VERSION,
     license='MIT',
     author='mk',
     author_email='manojklm@gmail.com',
